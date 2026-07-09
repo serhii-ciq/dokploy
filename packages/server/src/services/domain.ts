@@ -47,30 +47,8 @@ export const createDomain = async (input: z.infer<typeof apiCreateDomain>) => {
 	return result;
 };
 
-export const generateTraefikMeDomain = async (
-	appName: string,
-	_userId: string,
-	serverId?: string,
-) => {
-	if (serverId) {
-		const server = await findServerById(serverId);
-		return generateRandomDomain({
-			serverIp: server.ipAddress,
-			projectName: appName,
-		});
-	}
-
-	if (process.env.NODE_ENV === "development") {
-		return generateRandomDomain({
-			serverIp: "",
-			projectName: appName,
-		});
-	}
-	const settings = await getWebServerSettings();
-	return generateRandomDomain({
-		serverIp: settings?.serverIp || "",
-		projectName: appName,
-	});
+export const generateTraefikMeDomain = async (appName: string) => {
+	return generateRandomDomain(appName);
 };
 
 export const generateWildcardDomain = (

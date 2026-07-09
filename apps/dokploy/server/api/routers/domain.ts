@@ -8,7 +8,6 @@ import {
 	findServerById,
 	generateTraefikMeDomain,
 	getServerIpCandidates,
-	getWebServerSettings,
 	manageDomain,
 	removeDomain,
 	removeDomainById,
@@ -82,23 +81,9 @@ export const domainRouter = createTRPCRouter({
 			return await findDomainsByComposeId(input.composeId);
 		}),
 	generateDomain: withPermission("domain", "create")
-		.input(z.object({ appName: z.string(), serverId: z.string().optional() }))
-		.mutation(async ({ input, ctx }) => {
-			return generateTraefikMeDomain(
-				input.appName,
-				ctx.user.ownerId,
-				input.serverId,
-			);
-		}),
-	canGenerateTraefikMeDomains: withPermission("domain", "read")
-		.input(z.object({ serverId: z.string() }))
-		.query(async ({ input }) => {
-			if (input.serverId) {
-				const server = await findServerById(input.serverId);
-				return server.ipAddress;
-			}
-			const settings = await getWebServerSettings();
-			return settings?.serverIp || "";
+		.input(z.object({ appName: z.string() }))
+		.mutation(async ({ input }) => {
+			return generateTraefikMeDomain(input.appName);
 		}),
 
 	update: protectedProcedure

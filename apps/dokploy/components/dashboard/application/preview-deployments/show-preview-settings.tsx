@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { AlertBlock } from "@/components/shared/alert-block";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,7 +87,7 @@ export const ShowPreviewSettings = ({ applicationId }: Props) => {
 	const form = useForm<Schema>({
 		defaultValues: {
 			env: "",
-			wildcardDomain: "*.sslip.io",
+			wildcardDomain: "*.cloud.creatoriq.com",
 			port: 3000,
 			previewLimit: 3,
 			previewLabels: [],
@@ -102,7 +101,6 @@ export const ShowPreviewSettings = ({ applicationId }: Props) => {
 
 	const previewHttps = form.watch("previewHttps");
 	const wildcardDomain = form.watch("wildcardDomain");
-	const isTraefikMeDomain = wildcardDomain?.includes("sslip.io") || false;
 
 	useEffect(() => {
 		setIsEnabled(data?.isPreviewDeploymentsActive || false);
@@ -114,7 +112,7 @@ export const ShowPreviewSettings = ({ applicationId }: Props) => {
 				env: data.previewEnv || "",
 				buildArgs: data.previewBuildArgs || "",
 				buildSecrets: data.previewBuildSecrets || "",
-				wildcardDomain: data.previewWildcard || "*.sslip.io",
+				wildcardDomain: data.previewWildcard || "*.cloud.creatoriq.com",
 				port: data.previewPort || 3000,
 				previewLabels: data.previewLabels || [],
 				previewLimit: data.previewLimit || 3,
@@ -171,13 +169,6 @@ export const ShowPreviewSettings = ({ applicationId }: Props) => {
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid gap-4">
-						{isTraefikMeDomain && (
-							<AlertBlock type="info">
-								<strong>Note:</strong> sslip.io is a public HTTP service and
-								does not support SSL/HTTPS. HTTPS and certificate options will
-								not have any effect.
-							</AlertBlock>
-						)}
 						<Form {...form}>
 							<form
 								onSubmit={form.handleSubmit(onSubmit)}
@@ -192,7 +183,7 @@ export const ShowPreviewSettings = ({ applicationId }: Props) => {
 											<FormItem>
 												<FormLabel>Wildcard Domain</FormLabel>
 												<FormControl>
-													<Input placeholder="*.sslip.io" {...field} />
+													<Input placeholder="*.cloud.creatoriq.com" {...field} />
 												</FormControl>
 												<FormMessage />
 											</FormItem>
