@@ -3,13 +3,18 @@ import {
 	VALID_HOSTNAME_REGEX,
 } from "@dokploy/server/utils/hostname-validation";
 import { standardSchemaResolver as zodResolver } from "@hookform/resolvers/standard-schema";
-import { DatabaseZap, Dices, RefreshCw, X } from "lucide-react";
+import { ChevronDown, DatabaseZap, Dices, RefreshCw, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { AlertBlock } from "@/components/shared/alert-block";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -145,10 +150,20 @@ interface Props {
 	children: React.ReactNode;
 }
 
+const DEFAULT_PORTS: Record<string, number> = {
+	dockerfile: 80,
+	nixpacks: 3000,
+	railpack: 3000,
+	heroku_buildpacks: 3000,
+	paketo_buildpacks: 8080,
+	static: 80,
+};
+
 export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [cacheType, setCacheType] = useState<CacheType>("cache");
 	const [isManualInput, setIsManualInput] = useState(false);
+	const [advancedOpen, setAdvancedOpen] = useState(!!domainId);
 
 	const utils = api.useUtils();
 	const { data, refetch } = api.domain.one.useQuery(
@@ -232,6 +247,7 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 	const useCustomEntrypoint = form.watch("useCustomEntrypoint");
 	const https = form.watch("https");
 	const domainType = form.watch("domainType");
+	const port = form.watch("port");
 	const host = form.watch("host");
 	const isTraefikMeDomain = host?.includes("sslip.io") || false;
 
@@ -516,33 +532,33 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 									control={form.control}
 									name="host"
 									render={({ field }) => (
-										<FormItem>
-											{!canGenerateTraefikMeDomains &&
-												field.value.includes("sslip.io") && (
-													<AlertBlock type="warning">
-														You need to set an IP address in your{" "}
-														<Link
-															href="/dashboard/settings/server"
-															className="text-primary"
-														>
-															{application?.serverId
-																? "Remote Servers -> Server -> Edit Server -> Update IP Address"
-																: "Web Server -> Server -> Update Server IP"}
-														</Link>{" "}
-														to make your sslip.io domain work.
-													</AlertBlock>
-												)}
-											{isTraefikMeDomain && (
-												<AlertBlock type="info">
-													<strong>Note:</strong> sslip.io is a public HTTP
-													service and does not support SSL/HTTPS. HTTPS and
-													certificate options will not have any effect.
+							<FormItem>
+										{!canGenerateTraefikMeDomains &&
+											field.value.includes("sslip.io") && (
+												<AlertBlock type="warning">
+													You need to set an IP address in your{" "}
+													<Link
+														href="/dashboard/settings/server"
+														className="text-primary"
+													>
+														{application?.serverId
+															? "Remote Servers -> Server -> Edit Server -> Update IP Address"
+															: "Web Server -> Server -> Update Server IP"}
+													</Link>{" "}
+													to make your sslip.io domain work.
 												</AlertBlock>
 											)}
-											<FormLabel>Host</FormLabel>
-											<div className="flex gap-2">
-												<FormControl>
-													<Input placeholder="api.dokploy.com" {...field} />
+										{isTraefikMeDomain && (
+											<AlertBlock type="info">
+												<strong>Note:</strong> sslip.io is a public HTTP
+												service and does not support SSL/HTTPS. HTTPS and
+												certificate options will not have any effect.
+											</AlertBlock>
+										)}
+										<FormLabel>Host</FormLabel>
+										<div className="flex gap-2">
+											<FormControl>
+												<Input placeholder="api.dokploy.com" {...field} />
 												</FormControl>
 												<TooltipProvider delayDuration={0}>
 													<Tooltip>
@@ -558,6 +574,12 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 																	})
 																		.then((domain) => {
 																			field.onChange(domain);
+																			if (!form.getValues("port") && type === "application" && application?.buildType) {
+																				const defaultPort = DEFAULT_PORTS[application.buildType];
+																				if (defaultPort) {
+																					form.setValue("port", defaultPort);
+																				}
+																			}
 																		})
 																		.catch((err) => {
 																			toast.error(err.message);
@@ -581,6 +603,48 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 											<FormMessage />
 										</FormItem>
 									)}
+								/>
+
+								<Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+									<CollapsibleTrigger asChild>
+										<Button
+											variant="ghost"
+											type="button"
+											className="flex w-full items-center justify-between p-0 hover:bg-transparent"
+										>
+											<span className="text-sm font-medium">Advanced Settings</span>
+											<ChevronDown
+												className={`size-4 text-muted-foreground transition-transform ${advancedOpen ? "rotate-180" : ""}`}
+											/>
+										</Button>
+									</CollapsibleTrigger>
+									<CollapsibleContent forceMount className="flex flex-col gap-4 pt-2 data-[state=closed]:hidden">
+
+								<FormField
+									control={form.control}
+									name="port"
+									render={({ field }) => {
+										return (
+											<FormItem>
+												<FormLabel>Container Port</FormLabel>
+												<FormDescription>
+													The port where your application is running inside the
+													container (e.g., 3000 for Node.js, 80 for Nginx, 8080
+													for Java)
+												</FormDescription>
+												{host && !port && (
+													<AlertBlock type="warning">
+														Container port is required for the domain to work
+														correctly.
+													</AlertBlock>
+												)}
+												<FormControl>
+													<NumberInput placeholder="" {...field} />
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										);
+									}}
 								/>
 
 								<FormField
@@ -640,27 +704,6 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 											</FormControl>
 										</FormItem>
 									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="port"
-									render={({ field }) => {
-										return (
-											<FormItem>
-												<FormLabel>Container Port</FormLabel>
-												<FormDescription>
-													The port where your application is running inside the
-													container (e.g., 3000 for Node.js, 80 for Nginx, 8080
-													for Java)
-												</FormDescription>
-												<FormControl>
-													<NumberInput placeholder={"3000"} {...field} />
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										);
-									}}
 								/>
 
 								<FormField
@@ -924,6 +967,9 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 										</FormItem>
 									)}
 								/>
+
+									</CollapsibleContent>
+								</Collapsible>
 							</div>
 						</div>
 					</form>

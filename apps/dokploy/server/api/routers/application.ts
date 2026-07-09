@@ -805,6 +805,7 @@ export const applicationRouter = createTRPCRouter({
 				applicationId: z.string(),
 				zip: zfd.file(),
 				dropBuildPath: z.string().optional(),
+				buildType: z.enum(["dockerfile", "heroku_buildpacks", "paketo_buildpacks", "nixpacks", "static", "railpack"]).optional(),
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
@@ -819,6 +820,7 @@ export const applicationRouter = createTRPCRouter({
 
 			await updateApplication(applicationId, {
 				sourceType: "drop",
+				...(input.buildType && { buildType: input.buildType }),
 				dropBuildPath: dropBuildPath || "",
 			});
 

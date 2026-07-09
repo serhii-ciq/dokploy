@@ -188,7 +188,7 @@ export const applications = pgTable("application", {
 	applicationStatus: applicationStatus("applicationStatus")
 		.notNull()
 		.default("idle"),
-	buildType: buildType("buildType").notNull().default("nixpacks"),
+	buildType: buildType("buildType").notNull().default("railpack"),
 	railpackVersion: text("railpackVersion").default("0.15.4"),
 	herokuVersion: text("herokuVersion").default("24"),
 	publishDirectory: text("publishDirectory"),

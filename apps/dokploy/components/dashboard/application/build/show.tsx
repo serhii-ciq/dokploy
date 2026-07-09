@@ -1,6 +1,6 @@
 import { standardSchemaResolver as zodResolver } from "@hookform/resolvers/standard-schema";
 import { Cog } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -174,7 +174,7 @@ export const ShowBuildChooseForm = ({ applicationId }: Props) => {
 
 	const form = useForm({
 		defaultValues: {
-			buildType: BuildType.nixpacks,
+			buildType: BuildType.railpack,
 		},
 		resolver: zodResolver(mySchema),
 	});
@@ -190,7 +190,7 @@ export const ShowBuildChooseForm = ({ applicationId }: Props) => {
 				...data,
 				buildType: isValidBuildType(data.buildType)
 					? (data.buildType as BuildType)
-					: BuildType.nixpacks, // fallback
+					: BuildType.railpack,
 			};
 
 			form.reset(resetData(typedData));
@@ -205,7 +205,17 @@ export const ShowBuildChooseForm = ({ applicationId }: Props) => {
 		}
 	}, [data, form]);
 
-	// Hide builder section when Docker provider is selected
+	const prevSourceType = useRef(data?.sourceType);
+	useEffect(() => {
+		if (!data?.sourceType) return;
+		if (prevSourceType.current !== data.sourceType) {
+			prevSourceType.current = data.sourceType;
+			if (data.sourceType === "drop") {
+				form.setValue("buildType", BuildType.static);
+			}
+		}
+	}, [data?.sourceType, form]);
+
 	if (data?.sourceType === "docker") {
 		return null;
 	}

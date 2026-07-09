@@ -1,0 +1,1 @@
+ALTER TABLE "application" ALTER COLUMN "buildType" SET DEFAULT 'railpack';
