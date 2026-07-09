@@ -46,6 +46,7 @@ export const SaveDragNDrop = ({ applicationId }: Props) => {
 
 		formData.append("zip", values.zip);
 		formData.append("applicationId", applicationId);
+		formData.append("buildType", "static");
 		if (values.dropBuildPath) {
 			formData.append("dropBuildPath", values.dropBuildPath);
 		}
