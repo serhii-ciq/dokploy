@@ -70,6 +70,7 @@ export const createApplication = async (
 		const newApplication = await tx
 			.insert(applications)
 			.values({
+				buildType: "railpack",
 				...input,
 				appName,
 			})
