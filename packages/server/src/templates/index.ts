@@ -7,7 +7,6 @@ import { TRPCError } from "@trpc/server";
 import { fetchTemplateFiles } from "./github";
 
 export interface Schema {
-	serverIp: string;
 	projectName: string;
 }
 
@@ -30,24 +29,16 @@ export interface GenerateJWTOptions {
 	payload?: Record<string, unknown> | undefined;
 }
 
-export const generateRandomDomain = ({
-	serverIp,
-	projectName,
-}: Schema): string => {
+export const generateRandomDomain = (projectName: string): string => {
 	const hash = randomBytes(3).toString("hex");
-	const effectiveIp = serverIp || "127.0.0.1";
-	const slugIp = effectiveIp.replaceAll(".", "-").replaceAll(":", "-");
 
-	// Domain labels have a max length of 63 characters
-	// Reserve space for: hash (6) + separators (1-2) + ip section + dot + sslip.io (8)
-	// Approx: 6 + 2 + (variable ip length) + 9 = ~19-30 chars for other parts
 	const maxProjectNameLength = 40;
 	const truncatedProjectName =
 		projectName.length > maxProjectNameLength
 			? projectName.substring(0, maxProjectNameLength)
 			: projectName;
 
-	return `${truncatedProjectName}-${hash}-${slugIp}.sslip.io`;
+	return `${truncatedProjectName}-${hash}.cloud.creatoriq.com`;
 };
 
 export const generateHash = (length = 8): string => {

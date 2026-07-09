@@ -1,7 +1,6 @@
 import dns from "node:dns";
 import { promisify } from "node:util";
 import { db } from "@dokploy/server/db";
-import { getWebServerSettings } from "@dokploy/server/services/web-server-settings";
 import { generateRandomDomain } from "@dokploy/server/templates";
 import { manageDomain } from "@dokploy/server/utils/traefik/domain";
 import { TRPCError } from "@trpc/server";
@@ -10,7 +9,6 @@ import type { z } from "zod";
 import { type apiCreateDomain, domains } from "../db/schema";
 import { findApplicationById } from "./application";
 import { detectCDNProvider } from "./cdn";
-import { findServerById } from "./server";
 
 export type Domain = typeof domains.$inferSelect;
 
@@ -43,30 +41,8 @@ export const createDomain = async (input: z.infer<typeof apiCreateDomain>) => {
 	return result;
 };
 
-export const generateTraefikMeDomain = async (
-	appName: string,
-	_userId: string,
-	serverId?: string,
-) => {
-	if (serverId) {
-		const server = await findServerById(serverId);
-		return generateRandomDomain({
-			serverIp: server.ipAddress,
-			projectName: appName,
-		});
-	}
-
-	if (process.env.NODE_ENV === "development") {
-		return generateRandomDomain({
-			serverIp: "",
-			projectName: appName,
-		});
-	}
-	const settings = await getWebServerSettings();
-	return generateRandomDomain({
-		serverIp: settings?.serverIp || "",
-		projectName: appName,
-	});
+export const generateTraefikMeDomain = async (appName: string) => {
+	return generateRandomDomain(appName);
 };
 
 export const generateWildcardDomain = (

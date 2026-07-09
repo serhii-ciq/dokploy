@@ -201,11 +201,6 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 	const { mutateAsync: generateDomain, isPending: isLoadingGenerate } =
 		api.domain.generateDomain.useMutation();
 
-	const { data: canGenerateTraefikMeDomains } =
-		api.domain.canGenerateTraefikMeDomains.useQuery({
-			serverId: application?.serverId || "",
-		});
-
 	const {
 		data: services,
 		isFetching: isLoadingServices,
@@ -233,9 +228,9 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 			port: undefined,
 			useCustomEntrypoint: false,
 			customEntrypoint: undefined,
-			https: false,
-			certificateType: undefined,
-			customCertResolver: undefined,
+			https: true,
+			certificateType: "custom",
+			customCertResolver: "ACM",
 			serviceName: undefined,
 			domainType: type,
 			middlewares: [],
@@ -249,7 +244,6 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 	const domainType = form.watch("domainType");
 	const port = form.watch("port");
 	const host = form.watch("host");
-	const isTraefikMeDomain = host?.includes("sslip.io") || false;
 
 	useEffect(() => {
 		if (data) {
@@ -279,9 +273,9 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 				port: undefined,
 				useCustomEntrypoint: false,
 				customEntrypoint: undefined,
-				https: false,
-				certificateType: undefined,
-				customCertResolver: undefined,
+				https: true,
+				certificateType: "custom",
+				customCertResolver: "ACM",
 				domainType: type,
 				middlewares: [],
 			});
@@ -532,33 +526,11 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 									control={form.control}
 									name="host"
 									render={({ field }) => (
-							<FormItem>
-										{!canGenerateTraefikMeDomains &&
-											field.value.includes("sslip.io") && (
-												<AlertBlock type="warning">
-													You need to set an IP address in your{" "}
-													<Link
-														href="/dashboard/settings/server"
-														className="text-primary"
-													>
-														{application?.serverId
-															? "Remote Servers -> Server -> Edit Server -> Update IP Address"
-															: "Web Server -> Server -> Update Server IP"}
-													</Link>{" "}
-													to make your sslip.io domain work.
-												</AlertBlock>
-											)}
-										{isTraefikMeDomain && (
-											<AlertBlock type="info">
-												<strong>Note:</strong> sslip.io is a public HTTP
-												service and does not support SSL/HTTPS. HTTPS and
-												certificate options will not have any effect.
-											</AlertBlock>
-										)}
-										<FormLabel>Host</FormLabel>
-										<div className="flex gap-2">
-											<FormControl>
-												<Input placeholder="api.dokploy.com" {...field} />
+										<FormItem>
+											<FormLabel>Host</FormLabel>
+											<div className="flex gap-2">
+												<FormControl>
+													<Input placeholder="*.cloud.creatoriq.com" {...field} />
 												</FormControl>
 												<TooltipProvider delayDuration={0}>
 													<Tooltip>
@@ -570,10 +542,12 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 																onClick={() => {
 																	generateDomain({
 																		appName: application?.appName || "",
-																		serverId: application?.serverId || "",
 																	})
 																		.then((domain) => {
 																			field.onChange(domain);
+																			form.setValue("https", true);
+																			form.setValue("certificateType", "custom");
+																			form.setValue("customCertResolver", "ACM");
 																			if (!form.getValues("port") && type === "application" && application?.buildType) {
 																				const defaultPort = DEFAULT_PORTS[application.buildType];
 																				if (defaultPort) {
@@ -594,7 +568,7 @@ export const AddDomain = ({ id, type, domainId = "", children }: Props) => {
 															sideOffset={5}
 															className="max-w-40"
 														>
-															<p>Generate sslip.io domain</p>
+															<p>Generate domain</p>
 														</TooltipContent>
 													</Tooltip>
 												</TooltipProvider>

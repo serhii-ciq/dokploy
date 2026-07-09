@@ -86,9 +86,6 @@ export const AddPreviewDomain = ({
 		resolver: zodResolver(domain),
 	});
 
-	const host = form.watch("host");
-	const isTraefikMeDomain = host?.includes("sslip.io") || false;
-
 	useEffect(() => {
 		if (data) {
 			form.reset({
@@ -160,13 +157,6 @@ export const AddPreviewDomain = ({
 									name="host"
 									render={({ field }) => (
 										<FormItem>
-											{isTraefikMeDomain && (
-												<AlertBlock type="info">
-													<strong>Note:</strong> sslip.io is a public HTTP
-													service and does not support SSL/HTTPS. HTTPS and
-													certificate options will not have any effect.
-												</AlertBlock>
-											)}
 											<FormLabel>Host</FormLabel>
 											<div className="flex gap-2">
 												<FormControl>
@@ -182,9 +172,6 @@ export const AddPreviewDomain = ({
 																onClick={() => {
 																	generateDomain({
 																		appName: previewDeployment?.appName || "",
-																		serverId:
-																			previewDeployment?.application
-																				?.serverId || "",
 																	})
 																		.then((domain) => {
 																			field.onChange(domain);
@@ -202,7 +189,7 @@ export const AddPreviewDomain = ({
 															sideOffset={5}
 															className="max-w-40"
 														>
-															<p>Generate sslip.io domain</p>
+															<p>Generate domain</p>
 														</TooltipContent>
 													</Tooltip>
 												</TooltipProvider>

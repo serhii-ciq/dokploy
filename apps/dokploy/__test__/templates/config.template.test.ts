@@ -7,7 +7,6 @@ describe("processTemplate", () => {
 	// Mock schema for testing
 	const mockSchema: Schema = {
 		projectName: "test",
-		serverIp: "127.0.0.1",
 	};
 
 	describe("variables processing", () => {

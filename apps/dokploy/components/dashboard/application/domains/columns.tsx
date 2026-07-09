@@ -164,7 +164,6 @@ export const createColumns = ({
 		header: "Certificate",
 		cell: ({ row }) => {
 			const domain = row.original;
-			const validationState = validationStates[domain.host];
 
 			return (
 				<div className="flex items-center gap-2">
@@ -173,7 +172,7 @@ export const createColumns = ({
 							{domain.certificateType}
 						</Badge>
 					)}
-					{!domain.host.includes("sslip.io") && (
+					{!domain.host.includes("cloud.creatoriq.com") && (
 						<TooltipProvider>
 							<Tooltip>
 								<TooltipTrigger asChild>
@@ -299,16 +298,14 @@ export const createColumns = ({
 
 			return (
 				<div className="flex items-center gap-2">
-					{!domain.host.includes("sslip.io") && (
-						<DnsHelperModal
-							domain={{
-								host: domain.host,
-								https: domain.https,
-								path: domain.path || undefined,
-							}}
-							serverIp={serverIp}
-						/>
-					)}
+					<DnsHelperModal
+						domain={{
+							host: domain.host,
+							https: domain.https,
+							path: domain.path || undefined,
+						}}
+						serverIp={serverIp}
+					/>
 					{canCreateDomain && (
 						<AddDomain id={id} type={type} domainId={domain.domainId}>
 							<Button

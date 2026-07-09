@@ -184,9 +184,8 @@ export const ForwardAuthServers = () => {
 		try {
 			const host = await generateDomain({
 				appName: "auth",
-				serverId: serverId ?? undefined,
 			});
-			patchForm(serverId, { host, https: false, certificateType: "none" });
+			patchForm(serverId, { host, https: true, certificateType: "custom", customCertResolver: "ACM" });
 		} catch (error) {
 			toast.error(
 				error instanceof Error ? error.message : "Error generating domain",
@@ -295,7 +294,7 @@ export const ForwardAuthServers = () => {
 													}
 													className="font-mono text-sm"
 												/>
-												{f?.host && !f.host.includes("sslip.io") && (
+												{f?.host && (
 													<DnsHelperModal
 														domain={{
 															host: f.host,
@@ -311,7 +310,7 @@ export const ForwardAuthServers = () => {
 													variant="secondary"
 													size="icon"
 													isLoading={isGenerating}
-													title="Generate sslip.io domain"
+													title="Generate domain"
 													onClick={() => handleGenerateDomain(srv.serverId)}
 												>
 													<Dices className="size-4 text-muted-foreground" />

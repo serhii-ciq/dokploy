@@ -19,17 +19,10 @@ export interface Template {
 	domains?: DomainSchema[];
 }
 
-export const generateRandomDomain = ({
-	serverIp,
-	projectName,
-}: {
-	serverIp: string;
-	projectName: string;
-}): string => {
+export const generateRandomDomain = (projectName: string): string => {
 	const hash = randomBytes(3).toString("hex");
-	const slugIp = serverIp.replaceAll(".", "-");
 
-	return `${projectName}-${hash}${slugIp === "" ? "" : `-${slugIp}`}.sslip.io`;
+	return `${projectName}-${hash}.cloud.creatoriq.com`;
 };
 
 export const generateHash = (projectName: string, quantity = 3): string => {
