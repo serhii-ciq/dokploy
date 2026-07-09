@@ -79,6 +79,38 @@ describe("readValidDirectory (path traversal)", () => {
 		expect(readValidDirectory("")).toBe(false);
 	});
 
+	it("returns true for paths with @ symbol (SvelteKit build output)", () => {
+		expect(
+			readValidDirectory(
+				`${BASE}/applications/myapp/code/server/chunks/_page@.svelte-4a1f2049.js`,
+			),
+		).toBe(true);
+	});
+
+	it("returns true for paths with parentheses (SvelteKit route groups)", () => {
+		expect(
+			readValidDirectory(
+				`${BASE}/applications/myapp/code/src/routes/(app)/dashboard/+page.svelte`,
+			),
+		).toBe(true);
+	});
+
+	it("returns true for SvelteKit generated $types files", () => {
+		expect(
+			readValidDirectory(
+				`${BASE}/applications/myapp/code/.svelte-kit/types/src/routes/(app)/$types.d.ts`,
+			),
+		).toBe(true);
+	});
+
+	it("returns true for paths with = sign (SvelteKit named layouts)", () => {
+		expect(
+			readValidDirectory(
+				`${BASE}/applications/myapp/code/src/routes/(app)/+layout=bare.svelte`,
+			),
+		).toBe(true);
+	});
+
 	it("returns true for Next.js dynamic route paths with square brackets", () => {
 		expect(
 			readValidDirectory(
