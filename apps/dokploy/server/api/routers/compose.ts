@@ -15,7 +15,6 @@ import {
 	findDomainsByComposeId,
 	findEnvironmentById,
 	findProjectById,
-	findServerById,
 	getAccessibleServerIds,
 	getComposeContainer,
 	getContainerLogs,
@@ -617,19 +616,7 @@ export const composeRouter = createTRPCRouter({
 				fetchTemplateLogo(input.id, input.baseUrl),
 			]);
 
-			let serverIp = "127.0.0.1";
-
 			const project = await findProjectById(environment.projectId);
-
-			if (input.serverId) {
-				const server = await findServerById(input.serverId);
-				serverIp = server.ipAddress;
-			} else if (process.env.NODE_ENV === "development") {
-				serverIp = "127.0.0.1";
-			} else {
-				const settings = await getWebServerSettings();
-				serverIp = settings?.serverIp || "127.0.0.1";
-			}
 
 			const projectName = slugify(`${project.name} ${input.id}`);
 			const appName = `${projectName}-${generatePassword(6)}`;
@@ -641,7 +628,6 @@ export const composeRouter = createTRPCRouter({
 				},
 			};
 			const generate = processTemplate(config, {
-				serverIp: serverIp,
 				projectName: projectName,
 			});
 
@@ -828,17 +814,6 @@ export const composeRouter = createTRPCRouter({
 				const decodedData = Buffer.from(input.base64, "base64").toString(
 					"utf-8",
 				);
-				let serverIp = "127.0.0.1";
-
-				if (compose.serverId) {
-					const server = await findServerById(compose.serverId);
-					serverIp = server.ipAddress;
-				} else if (process.env.NODE_ENV === "development") {
-					serverIp = "127.0.0.1";
-				} else {
-					const settings = await getWebServerSettings();
-					serverIp = settings?.serverIp || "127.0.0.1";
-				}
 				const templateData = JSON.parse(decodedData);
 				const config = parse(templateData.config) as CompleteTemplate;
 
@@ -859,7 +834,6 @@ export const composeRouter = createTRPCRouter({
 				};
 
 				const processedTemplate = processTemplate(configModified, {
-					serverIp: serverIp,
 					projectName: compose.appName,
 				});
 
@@ -899,16 +873,6 @@ export const composeRouter = createTRPCRouter({
 					"utf-8",
 				);
 
-				let serverIp = "127.0.0.1";
-
-				if (input.serverId) {
-					const server = await findServerById(input.serverId);
-					serverIp = server.ipAddress;
-				} else if (process.env.NODE_ENV !== "development") {
-					const settings = await getWebServerSettings();
-					serverIp = settings?.serverIp || "127.0.0.1";
-				}
-
 				const templateData = JSON.parse(decodedData);
 				const config = parse(templateData.config) as CompleteTemplate;
 
@@ -929,7 +893,6 @@ export const composeRouter = createTRPCRouter({
 				};
 
 				const processedTemplate = processTemplate(configModified, {
-					serverIp,
 					projectName: input.appName,
 				});
 
@@ -970,18 +933,6 @@ export const composeRouter = createTRPCRouter({
 					await removeDomainById(domain.domainId);
 				}
 
-				let serverIp = "127.0.0.1";
-
-				if (compose.serverId) {
-					const server = await findServerById(compose.serverId);
-					serverIp = server.ipAddress;
-				} else if (process.env.NODE_ENV === "development") {
-					serverIp = "127.0.0.1";
-				} else {
-					const settings = await getWebServerSettings();
-					serverIp = settings?.serverIp || "127.0.0.1";
-				}
-
 				const templateData = JSON.parse(decodedData);
 
 				const config = parse(templateData.config) as CompleteTemplate;
@@ -1003,7 +954,6 @@ export const composeRouter = createTRPCRouter({
 				};
 
 				const processedTemplate = processTemplate(configModified, {
-					serverIp: serverIp,
 					projectName: compose.appName,
 				});
 

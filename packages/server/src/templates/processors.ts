@@ -75,7 +75,7 @@ export function processValue(
 	let processedValue = value?.replace(/\${([^}]+)}/g, (match, varName) => {
 		// Handle utility functions
 		if (varName === "domain") {
-			return generateRandomDomain(schema);
+			return generateRandomDomain(schema.projectName);
 		}
 
 		if (varName === "base64") {
@@ -196,7 +196,7 @@ export function processVariables(
 		if (typeof value !== "string") continue;
 
 		if (value === "${domain}") {
-			variables[key] = generateRandomDomain(schema);
+			variables[key] = generateRandomDomain(schema.projectName);
 		} else if (value.startsWith("${base64:")) {
 			const match = value.match(/\${base64:(\d+)}/);
 			const length = match?.[1] ? Number.parseInt(match[1], 10) : 32;
@@ -244,7 +244,7 @@ export function processDomains(
 		...domain,
 		host: domain.host
 			? processValue(domain.host, variables, schema)
-			: generateRandomDomain(schema),
+			: generateRandomDomain(schema.projectName),
 	}));
 }
 

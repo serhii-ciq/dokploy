@@ -6,7 +6,6 @@ describe("helpers functions", () => {
 	// Mock schema for testing
 	const mockSchema: Schema = {
 		projectName: "test",
-		serverIp: "127.0.0.1",
 	};
 	// some helpers to test jwt
 	type JWTParts = [string, string, string];
@@ -29,9 +28,7 @@ describe("helpers functions", () => {
 		it("should generate a random domain", () => {
 			const domain = processValue("${domain}", {}, mockSchema);
 			expect(domain.startsWith(`${mockSchema.projectName}-`)).toBeTruthy();
-			expect(
-				domain.endsWith(`${mockSchema.serverIp.replaceAll(".", "-")}.sslip.io`),
-			).toBeTruthy();
+			expect(domain.endsWith(".cloud.creatoriq.com")).toBeTruthy();
 		});
 	});
 

@@ -460,19 +460,17 @@ export const ShowDomains = ({ id, type }: Props) => {
 														</Badge>
 													)}
 													<div className="flex gap-2 flex-wrap">
-														{!item.host.includes("sslip.io") && (
-															<DnsHelperModal
-																domain={{
-																	host: item.host,
-																	https: item.https,
-																	path: item.path || undefined,
-																}}
-																serverIp={
-																	application?.server?.ipAddress?.toString() ||
-																	ip?.toString()
-																}
-															/>
-														)}
+														<DnsHelperModal
+														domain={{
+															host: item.host,
+															https: item.https,
+															path: item.path || undefined,
+														}}
+														serverIp={
+															application?.server?.ipAddress?.toString() ||
+															ip?.toString()
+														}
+													/>
 														{canCreateDomain && (
 															<AddDomain
 																id={id}
@@ -632,6 +630,7 @@ export const ShowDomains = ({ id, type }: Props) => {
 														</TooltipProvider>
 													))}
 
+													{!item.host.includes("cloud.creatoriq.com") && (
 													<TooltipProvider>
 														<Tooltip>
 															<TooltipTrigger asChild>
@@ -691,6 +690,7 @@ export const ShowDomains = ({ id, type }: Props) => {
 															</TooltipContent>
 														</Tooltip>
 													</TooltipProvider>
+													)}
 												</div>
 											</div>
 										</CardContent>

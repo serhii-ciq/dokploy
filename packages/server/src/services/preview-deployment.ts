@@ -18,7 +18,7 @@ import { findApplicationById } from "./application";
 import { removeDeploymentsByPreviewDeploymentId } from "./deployment";
 import { createDomain } from "./domain";
 import { findGithubById, getIssueComment } from "./github";
-import { getWebServerSettings } from "./web-server-settings";
+
 
 export type PreviewDeployment = typeof previewDeployments.$inferSelect;
 
@@ -136,10 +136,8 @@ export const createPreviewDeployment = async (
 		where: eq(organization.id, application.environment.project.organizationId),
 	});
 	const generateDomain = await generateWildcardDomain(
-		application.previewWildcard || "*.sslip.io",
+		application.previewWildcard || "*.cloud.creatoriq.com",
 		appName,
-		application.server?.ipAddress || "",
-		org?.ownerId || "",
 	);
 
 	if (!application.githubId) {
@@ -241,35 +239,10 @@ export const findPreviewDeploymentByApplicationId = async (
 const generateWildcardDomain = async (
 	baseDomain: string,
 	appName: string,
-	serverIp: string,
-	_userId: string,
 ): Promise<string> => {
 	if (!baseDomain.startsWith("*.")) {
 		throw new Error('The base domain must start with "*."');
 	}
-	const hash = `${appName}`;
-	if (baseDomain.includes("sslip.io")) {
-		let ip = "";
 
-		if (process.env.NODE_ENV === "development") {
-			ip = "127.0.0.1";
-		}
-
-		if (serverIp) {
-			ip = serverIp;
-		}
-
-		if (!ip) {
-			const settings = await getWebServerSettings();
-			ip = settings?.serverIp || "";
-		}
-
-		const slugIp = ip.replaceAll(".", "-");
-		return baseDomain.replace(
-			"*",
-			`${hash}${slugIp === "" ? "" : `-${slugIp}`}`,
-		);
-	}
-
-	return baseDomain.replace("*", hash);
+	return baseDomain.replace("*", appName);
 };
