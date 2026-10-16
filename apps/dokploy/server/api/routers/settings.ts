@@ -81,6 +81,9 @@ import {
 	publicProcedure,
 } from "../trpc";
 
+// The in-app updater would replace the CIQ image with the upstream dokploy/dokploy one.
+const CIQ_SELF_UPDATE_DISABLED = process.env.CIQ_ALLOW_SELF_UPDATE !== "true";
+
 export const settingsRouter = createTRPCRouter({
 	getWebServerSettings: protectedProcedure.query(async () => {
 		if (IS_CLOUD) {
@@ -544,7 +547,7 @@ export const settingsRouter = createTRPCRouter({
 			return true;
 		}),
 	getUpdateData: protectedProcedure.mutation(async () => {
-		if (IS_CLOUD) {
+		if (IS_CLOUD || CIQ_SELF_UPDATE_DISABLED) {
 			return DEFAULT_UPDATE_DATA;
 		}
 
@@ -553,6 +556,14 @@ export const settingsRouter = createTRPCRouter({
 	updateServer: adminProcedure.mutation(async ({ ctx }) => {
 		if (IS_CLOUD) {
 			return true;
+		}
+
+		if (CIQ_SELF_UPDATE_DISABLED) {
+			throw new TRPCError({
+				code: "PRECONDITION_FAILED",
+				message:
+					"The panel image is built by CIQ. Update it with upgrade-dokploy.sh on the host.",
+			});
 		}
 
 		const data = await getUpdateData(packageInfo.version);
