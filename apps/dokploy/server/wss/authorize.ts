@@ -4,6 +4,7 @@ import {
 	findMemberByUserId,
 	hasPermission,
 } from "@dokploy/server/services/permission";
+import { serviceOwnsTarget, type WssTarget } from "./service-target";
 
 type WssUser = { id: string } | null | undefined;
 type WssSession = { activeOrganizationId?: string | null } | null | undefined;
@@ -24,6 +25,7 @@ export const canAccessDockerOverWss = async (
 	session: WssSession,
 	serverId?: string | null,
 	serviceId?: string | null,
+	target?: WssTarget,
 ): Promise<boolean> => {
 	// return false;
 	if (!user || !session?.activeOrganizationId) return false;
@@ -39,10 +41,10 @@ export const canAccessDockerOverWss = async (
 	if (serviceId) {
 		try {
 			await checkServiceAccess(ctx, serviceId, "read");
-			return true;
 		} catch {
 			return false;
 		}
+		return serviceOwnsTarget(serviceId, serverId, target);
 	}
 
 	// Generic Docker overview (no service context): mirror the docker tRPC router

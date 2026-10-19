@@ -15,6 +15,11 @@ vi.mock("@dokploy/server", () => ({
 	getAccessibleServerIds: mockGetAccessibleServerIds,
 }));
 
+const mockServiceOwnsTarget = vi.hoisted(() => vi.fn());
+vi.mock("@/server/wss/service-target", () => ({
+	serviceOwnsTarget: mockServiceOwnsTarget,
+}));
+
 import {
 	canAccessDockerOverWss,
 	canAccessTerminalOverWss,
@@ -69,12 +74,48 @@ describe("canAccessDockerOverWss", () => {
 		mockHasPermission.mockResolvedValue(false);
 		mockGetAccessibleServerIds.mockResolvedValue(new Set());
 		mockCheckServiceAccess.mockResolvedValue(undefined);
+		mockServiceOwnsTarget.mockResolvedValue(true);
+		const target = { containerId: "app-1.1.abc" };
 		expect(
-			await canAccessDockerOverWss(USER, SESSION, "srv-remote", "svc-1"),
+			await canAccessDockerOverWss(
+				USER,
+				SESSION,
+				"srv-remote",
+				"svc-1",
+				target,
+			),
 		).toBe(true);
+		expect(mockServiceOwnsTarget).toHaveBeenCalledWith(
+			"svc-1",
+			"srv-remote",
+			target,
+		);
 		// Service path is authoritative — it must not fall through to docker/server.
 		expect(mockHasPermission).not.toHaveBeenCalled();
 		expect(mockGetAccessibleServerIds).not.toHaveBeenCalled();
+	});
+
+	it("denies a container that does not belong to the granted service", async () => {
+		// Passing the id of one's own service must not unlock other containers.
+		mockHasPermission.mockResolvedValue(true);
+		mockCheckServiceAccess.mockResolvedValue(undefined);
+		mockServiceOwnsTarget.mockResolvedValue(false);
+		expect(
+			await canAccessDockerOverWss(USER, SESSION, null, "svc-1", {
+				containerId: "dokploy-postgres.1.xyz",
+			}),
+		).toBe(false);
+		expect(mockHasPermission).not.toHaveBeenCalled();
+	});
+
+	it("does not check ownership when service access is denied", async () => {
+		mockCheckServiceAccess.mockRejectedValue(new Error("no access"));
+		expect(
+			await canAccessDockerOverWss(USER, SESSION, null, "svc-1", {
+				containerId: "app-1.1.abc",
+			}),
+		).toBe(false);
+		expect(mockServiceOwnsTarget).not.toHaveBeenCalled();
 	});
 });
 
